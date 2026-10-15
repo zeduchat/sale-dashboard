@@ -8,19 +8,89 @@ datasource db {
 }
 
 model User {
-  id            String     @id @default(cuid())
+  id            String    @id @default(cuid())
   name          String?
-  email         String?    @unique
+  email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
   tasks         Task[]
-  ownedLeads    Lead[]     @relation("LeadOwner")
-  createdLeads  Lead[]     @relation("LeadCreator")
+
+  // Invite-only auth (JWT + refresh tokens). Google sign-in (NextAuth) is only allowed for existing users.
+  passwordHash  String?
+  role          Role           @default(MEMBER)
+  createdAt     DateTime       @default(now())
+  disabledAt    DateTime?
+  refreshTokens RefreshToken[]
+  invitesSent   Invite[]       @relation("InvitedBy")
+  inviteId      String?
+  invite        Invite?        @relation("AcceptedVia", fields: [inviteId], references: [id], onDelete: SetNull)
+  ownedLeads    Lead[]         @relation("LeadOwner")
+  createdLeads  Lead[]         @relation("LeadCreator")
   calls         Call[]
   notes         Note[]
   activities    Activity[]
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+// 9-character setup token, valid for `maxUses` sign-ups (1 for emailed invites). Rows can be inserted by hand, so id and expiresAt have DB-level defaults.
+model Invite {
+  id          String    @id @default(dbgenerated("gen_random_uuid()::text"))
+  token       String    @unique
+  email       String?
+  role        Role      @default(MEMBER)
+  expiresAt   DateTime  @default(dbgenerated("(now() + interval '7 days')"))
+  usedAt      DateTime?
+  revokedAt   DateTime?
+  createdAt   DateTime  @default(now())
+  invitedById String?
+  invitedBy   User?     @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: SetNull)
+  maxUses     Int       @default(1)
+  uses        Int       @default(0)
+  members     User[]    @relation("AcceptedVia")
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+// Only the SHA-256 of the opaque refresh token is stored. Rotated on every use; reuse revokes the whole family.
+model RefreshToken {
+  id           String    @id @default(cuid())
+  tokenHash    String    @unique
+  familyId     String
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?
+  userAgent    String?
+  createdAt    DateTime  @default(now())
+
+  @@index([userId])
+  @@index([familyId])
+}
+
+enum AccessRequestStatus {
+  PENDING
+  INVITED
+  DISMISSED
+}
+
+model AccessRequest {
+  id        String              @id @default(cuid())
+  name      String
+  email     String
+  message   String?
+  status    AccessRequestStatus @default(PENDING)
+  createdAt DateTime            @default(now())
+  handledAt DateTime?
+
+  @@index([status, createdAt])
 }
 
 model Account {
@@ -222,4 +292,13 @@ model Activity {
   createdAt  DateTime     @default(now())
 
   @@index([leadId, createdAt])
+}
+
+// Single row (id "default"): SHA-hashed bootstrap/admin key, set or rotated via /api/admin/master-key.
+model MasterKey {
+  id          String   @id @default("default")
+  keyHash     String
+  version     Int      @default(1)
+  rotatedAt   DateTime @default(now())
+  rotatedById String?
 }

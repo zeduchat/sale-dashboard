@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth";
 import { notFound, redirect } from "next/navigation";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { getLeadProfile, getTeam } from "@/lib/leads";
 import { getShellCounts } from "@/lib/shell";
 import { LeadProfileView } from "@/components/leads/LeadProfileView";
@@ -19,14 +18,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 const TABS = ["activity", "calls", "tasks", "notes"] as const;
 
 export default async function LeadPage({ params, searchParams }: Props) {
-  const session = await getServerSession(authOptions);
-  const meId = (session?.user as { id?: string } | undefined)?.id;
-  if (!session?.user || !meId) redirect("/");
+  const session = await getSession();
+  if (!session) redirect("/login");
+  const meId = session.user.id;
 
   const [lead, team, shell] = await Promise.all([getLeadProfile(params.id), getTeam(meId), getShellCounts()]);
   if (!lead) notFound();
 
-  const name = session.user.name ?? session.user.email ?? "there";
+  const name = session.user.name;
   const tab = TABS.find((t) => t === searchParams.tab) ?? "activity";
 
   return (

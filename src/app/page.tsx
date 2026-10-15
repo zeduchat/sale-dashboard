@@ -1,34 +1,20 @@
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth";
 import { getDashboardData } from "@/lib/dashboard";
 import { parseRange } from "@/lib/range";
-import { SignInButton } from "@/components/AuthButtons";
 import { Dashboard } from "@/components/dashboard/Dashboard";
 import { AppShell } from "@/components/shell/AppShell";
-import { Card, Logo } from "@/components/zedu";
 
 export const dynamic = "force-dynamic";
 
 type Props = { searchParams: { range?: string | string[] } };
 
 export default async function Home({ searchParams }: Props) {
-  const session = await getServerSession(authOptions);
-
-  if (!session?.user) {
-    return (
-      <main className="zedu grid min-h-screen place-items-center bg-z-app px-4 py-6">
-        <Card className="w-full max-w-[400px] items-start !gap-3 !p-8 max-sm:!p-6">
-          <Logo />
-          <h1 className="mt-4 text-z-page text-z-fg">Sale dashboard</h1>
-          <p className="mb-2 text-z-small text-z-fg-muted">Sign in to see your calls, leads and follow-ups.</p>
-          <SignInButton />
-        </Card>
-      </main>
-    );
-  }
+  const session = await getSession();
+  if (!session) redirect("/login");
 
   const data = await getDashboardData(parseRange(searchParams.range));
-  const name = session.user.name ?? session.user.email ?? "there";
+  const name = session.user.name;
 
   return (
     <AppShell

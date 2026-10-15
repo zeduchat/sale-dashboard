@@ -1,18 +1,16 @@
 "use server";
 
 import { ActivityType, CallOutcome, LeadStatus, LeadType, LostReason, TaskType, type Prisma } from "@prisma/client";
-import { getServerSession } from "next-auth";
 import { revalidatePath } from "next/cache";
-import { authOptions } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import { phoneDigits, validateLead, type LeadFormErrors, type LeadFormValues } from "@/lib/leadForm";
 import { prisma } from "@/lib/prisma";
 import { STAGES, leadCode } from "@/lib/status";
 
 async function requireUser() {
-  const session = await getServerSession(authOptions);
-  const id = (session?.user as { id?: string } | undefined)?.id;
-  if (!id) throw new Error("Unauthorized");
-  return { id, name: session!.user!.name ?? session!.user!.email ?? "Someone" };
+  const session = await getSession();
+  if (!session) throw new Error("Unauthorized");
+  return { id: session.user.id, name: session.user.name || session.user.email };
 }
 
 function refresh() {

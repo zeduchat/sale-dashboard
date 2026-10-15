@@ -1,0 +1,17 @@
+# Local development database: `docker compose up -d`
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: zedu-sales-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: zedu
+      POSTGRES_PASSWORD: zedu_dev_pw
+      POSTGRES_DB: zedu_sales
+    ports:
+      - "55432:5432"
+    volumes:
+      - zedu-sales-pgdata:/var/lib/postgresql/data
+
+volumes:
+  zedu-sales-pgdata:

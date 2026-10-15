@@ -5,7 +5,7 @@
 // either), and a drawer below 768px.
 
 import { CircleHelp, Contact, LayoutDashboard, Phone, Search as SearchIcon, SquareCheck, UserRound, X } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/lib/auth/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 import { initialsOf } from "@/lib/status";
