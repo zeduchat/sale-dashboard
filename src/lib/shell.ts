@@ -7,12 +7,14 @@ function startOfDay(d: Date, addDays = 0) {
   return x;
 }
 
-/** Counts the app shell shows on every page: the Tasks nav badge and the notifications dot. */
+/** Counts the app shell shows on every page: the Tasks nav badge, the notifications dot and (admins only)
+ * pending access requests on Team & invitations. */
 export async function getShellCounts() {
   const now = new Date();
-  const [openTaskCount, overdueCount] = await Promise.all([
+  const [openTaskCount, overdueCount, accessRequestCount] = await Promise.all([
     prisma.task.count({ where: { done: false, dueAt: { lt: startOfDay(now, 1) } } }),
     prisma.task.count({ where: { done: false, dueAt: { lt: startOfDay(now) } } }),
+    prisma.accessRequest.count({ where: { status: "PENDING" } }),
   ]);
-  return { openTaskCount, unread: overdueCount > 0 };
+  return { openTaskCount, unread: overdueCount > 0, accessRequestCount };
 }

@@ -20,7 +20,15 @@ There is no sign-up. Every route except `/login`, `/setup`, `/request-access` an
 1. An admin invites someone at `/invites` (emails a 9-character setup code), or a row is added to the `Invite` table by hand.
 2. The invitee enters the code at `/setup`, then sets their name, email and password at `/setup/profile` and is signed in.
 3. People without an invite use `/request-access`, which emails every admin and appears on `/invites`.
-4. "Continue with Google" signs in the account with that email, or creates a new one with the Member role. Admins are only created through invites.
+4. "Continue with Google" signs in the account with that email, or creates a new one with the Member role. New admins come from invites.
+
+### Roles
+
+Migration `0008_everyone_admin` made every existing account an Admin. Admins downgrade people to Member (or
+deactivate them) in Settings › Team & Access; the change applies on the next page load, because the role is read
+from the database on each request rather than trusted from the access token. Admins see an **Admin** section in
+the sidebar (Team & invitations, with a badge for pending access requests, and Settings); Members don't, and
+can't open `/invites` or the team APIs.
 
 Create the first admin by inserting an invite with the `ADMIN` role, then open `/setup`:
 

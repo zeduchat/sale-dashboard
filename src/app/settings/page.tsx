@@ -41,7 +41,6 @@ export default async function SettingsPage() {
   return (
     <AppShell
       user={{ name: user.name, email: user.email, image: null, role: user.role }}
-      active="Settings"
       {...shell}
     >
       <SettingsView user={user} />

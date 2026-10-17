@@ -68,7 +68,8 @@ function contactData(c: ContactSeed) {
 }
 
 async function teamMember(name: string, email: string) {
-  return prisma.user.upsert({ where: { email }, update: {}, create: { name, email } });
+  // Everyone is an Admin until someone downgrades them (see migration 0008_everyone_admin).
+  return prisma.user.upsert({ where: { email }, update: {}, create: { name, email, role: "ADMIN" } });
 }
 
 async function main() {

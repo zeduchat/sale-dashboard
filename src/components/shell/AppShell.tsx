@@ -4,9 +4,9 @@
 // Sidebar: Expanded 248px at ≥1280px, Collapsed 64px rail at 768–1279px (the top-bar toggle overrides
 // either), and a drawer below 768px.
 
-import { CircleHelp, Contact, LayoutDashboard, Phone, Search as SearchIcon, SquareCheck, UserRound, X } from "lucide-react";
+import { CircleHelp, Contact, LayoutDashboard, Phone, Search as SearchIcon, Settings, SquareCheck, UserPlus, UserRound, X } from "lucide-react";
 import { signOut } from "@/lib/auth/client";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { initialsOf } from "@/lib/status";
 import { AddContactModal } from "@/components/contacts/AddContactModal";
@@ -36,6 +36,8 @@ type Props = {
   openTaskCount: number;
   /** Shows the red dot on the notifications bell. */
   unread: boolean;
+  /** Pending access requests, shown to admins on Team & invitations. */
+  accessRequestCount?: number;
   /** Active nav item. Defaults to "Dashboard". */
   active?: string;
   children: ReactNode;
@@ -66,9 +68,14 @@ const isActive = (href: string, pathname: string) =>
   href !== "#" && (href === "/" ? pathname === "/" : pathname === href || pathname.startsWith(`${href}/`));
 
 /** `active` (a nav label) overrides the URL-based active item. */
-export function AppShell({ user, openTaskCount, unread, active, children }: Props) {
+export function AppShell({ user, openTaskCount, unread, accessRequestCount = 0, active, children }: Props) {
   const wide = useWideScreen();
   const pathname = usePathname();
+  const search = useSearchParams();
+  const admin = user.role === "ADMIN";
+  // Settings switches tabs in place, so the Admin items follow the ?tab param.
+  const onTeam = pathname === "/invites" || (pathname === "/settings" && search.get("tab") === "team");
+  const onSettings = pathname === "/settings" && !onTeam;
   const router = useRouter();
   // null = follow the viewport; the top-bar toggle pins it until the viewport class changes.
   const [pinned, setPinned] = useState<boolean | null>(null);
@@ -173,6 +180,23 @@ export function AppShell({ user, openTaskCount, unread, active, children }: Prop
           />
         ))}
       </NavSection>
+      {/* Admins only (Figma "ZEDU · Sidebar", Admin section). Members reach their own settings from the user menu. */}
+      {admin && (
+        <>
+          {rail && <SidebarDivider />}
+          <NavSection label="Admin">
+            <NavItem
+              label="Team & invitations"
+              href="/settings?tab=team"
+              icon={<UserPlus aria-hidden />}
+              active={onTeam}
+              count={accessRequestCount > 0 ? accessRequestCount : undefined}
+              onClick={onNavigate}
+            />
+            <NavItem label="Settings" href="/settings" icon={<Settings aria-hidden />} active={onSettings} onClick={onNavigate} />
+          </NavSection>
+        </>
+      )}
     </Sidebar>
   );
 

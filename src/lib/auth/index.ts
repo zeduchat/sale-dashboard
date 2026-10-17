@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { cache } from "react";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { ACCESS_COOKIE } from "./config";
@@ -17,12 +18,19 @@ export {
 
 export type Session = { user: { id: string; name: string; email: string; role: AccessClaims["role"]; image: string | null } };
 
-/** Current user from the access-token cookie (server components, route handlers, server actions). */
-export async function getSession(): Promise<Session | null> {
+/**
+ * Current user from the access-token cookie (server components, route handlers, server actions).
+ * The role (and whether the account is still active) is read from the database, once per request, so a
+ * promotion, downgrade or deactivation applies on the next page load instead of when the 15-minute access
+ * token is next refreshed.
+ */
+export const getSession = cache(async (): Promise<Session | null> => {
   const claims = await verifyAccessToken(cookies().get(ACCESS_COOKIE)?.value);
   if (!claims) return null;
-  return { user: { id: claims.userId, name: claims.name, email: claims.email, role: claims.role, image: null } };
-}
+  const user = await prisma.user.findUnique({ where: { id: claims.userId }, select: { role: true, disabledAt: true } });
+  if (!user || user.disabledAt) return null;
+  return { user: { id: claims.userId, name: claims.name, email: claims.email, role: user.role, image: null } };
+});
 
 const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 });
