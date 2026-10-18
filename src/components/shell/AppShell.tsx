@@ -215,7 +215,7 @@ export function AppShell({ user, openTaskCount, accessRequestCount = 0, active, 
               onAddLead={() => router.push("/leads?new=1")}
               onNewTask={() => setAddingTask(true)}
               onAddContact={() => setAddingContact(true)}
-              onImport={() => {}}
+              onImport={() => router.push("/contact-import")}
             />
           }
         />

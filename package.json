@@ -7,6 +7,8 @@
     "build": "prisma generate && next build",
     "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
+    "test:csv": "node --import tsx --test tests/contact-import.test.ts",
+    "test:csv:integration": "node --import tsx --test tests/contact-import.integration.test.ts",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed"
@@ -20,6 +22,7 @@
     "next": "14.2.35",
     "next-auth": "^4.24.10",
     "nodemailer": "^7.0.13",
+    "papaparse": "^5.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
@@ -27,6 +30,7 @@
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^20.16.0",
     "@types/nodemailer": "^7.0.12",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18.3.0",
     "@types/react-dom": "^18.3.0",
     "postcss": "^8.5.30",

@@ -83,6 +83,42 @@ Migration `0007_contacts` upgrades the contacts directory table from `0003_conta
 linked to a lead keep that link (now `Lead.contactId`), every other lead gets its own contact, and unlinked
 contacts stay. The leads' old name/phone/email/company/type columns are kept but no longer used.
 
+## CSV contact import
+
+Active Admins and Members can import contacts from **Contacts → Import CSV**, the top-bar
+**New → Import contacts (CSV)** menu, or `/contact-import`.
+
+Upload a CSV, review and edit its rows, exclude unwanted records, then confirm the import.
+Only valid, nonduplicate contacts are saved; existing contacts are not overwritten and no leads
+are created. Results stay open until dismissed, and an error CSV can be downloaded for corrections.
+
+```csv
+Name,Phone,Email,Company
+Example contact,08030000000,contact@example.com,Example company
+```
+
+Name and Phone are required; Email and Company are optional. Files are limited to 2 MB and
+1,000 records. Duplicate checks use phone or email, both within the file and against stored contacts.
+The feature uses the existing database migrations and authentication configuration; no new
+environment variables or migrations are needed. Install the dependencies with `npm install`.
+
+See [CSV import usage, API, verification and limitations](docs/csv-import.md).
+
+## Verification
+
+```bash
+npm run test:csv
+npx tsc --noEmit
+npm run build
+```
+
+`npm run test:csv:integration` runs the real API/database checks only when explicitly configured
+with a disposable local test database; see the [test setup](docs/csv-import.md#verification).
+
+CSV import does not retain import history or create leads. Its duplicate lock coordinates CSV
+imports only; simultaneous manual contact creation can still introduce duplicates. Preview reads
+stored contact phone/email values into memory, so large-directory performance has not been assessed.
+
 ## Design system
 
 ZEDU v2 components and tokens live in `src/components/zedu` (see its [README](src/components/zedu/README.md)).

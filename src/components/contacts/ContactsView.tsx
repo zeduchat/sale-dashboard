@@ -45,6 +45,7 @@ import { FilterPopover } from "@/components/leads/FilterPopover";
 import { useLeadParams } from "@/components/leads/useLeadParams";
 import { AddContactModal } from "./AddContactModal";
 import { DuplicatesList } from "./Duplicates";
+import ContactImport from "./ContactImport";
 
 type Props = { params: ContactListParams; data: ContactListData };
 
@@ -101,6 +102,8 @@ export function ContactsView({ params, data }: Props) {
   const [q, setQ] = useState(params.q);
   const [deleting, setDeleting] = useState<ContactRow | null>(null);
   const [busy, startTransition] = useTransition();
+  const [importing, setImporting] = useState(false);
+  const [imported, setImported] = useState(false);
   const addOpen = search.get("new") === "1";
   const duplicates = params.tab === "duplicates";
 
@@ -127,7 +130,7 @@ export function ContactsView({ params, data }: Props) {
         description="Everyone you talk to, with or without a lead. One record per person or business — leads, calls and tasks link to it."
         actions={
           <>
-            <Button variant="secondary" size="sm" icon={<Upload aria-hidden />} disabled title="CSV import is coming soon">
+            <Button variant="secondary" size="sm" icon={<Upload aria-hidden />} onClick={() => { setImported(false); setImporting(true); }}>
               Import CSV
             </Button>
             <Button variant="secondary" size="sm" icon={<Plus aria-hidden />} onClick={() => set({ new: "1" })}>
@@ -359,6 +362,15 @@ export function ContactsView({ params, data }: Props) {
       </Modal>
 
       <AddContactModal open={addOpen} onClose={() => set({ new: null })} />
+      {importing && (
+        <ContactImport
+          onImported={() => setImported(true)}
+          onClose={() => {
+            setImporting(false);
+            if (imported) router.refresh();
+          }}
+        />
+      )}
     </>
   );
 }
