@@ -1,7 +1,7 @@
 import { PhoneCall } from "lucide-react";
 import type { ActivityItem } from "@/lib/dashboard";
 import { STAGES } from "@/lib/status";
-import { Avatar, Card, StatusPill, buttonClass } from "@/components/zedu";
+import { Avatar, Card, StatusPill } from "@/components/zedu";
 import { EmptyPanel } from "./EmptyPanel";
 
 const initialsOf = (name: string) =>
@@ -18,11 +18,6 @@ export function ActivityCard({ items }: { items: ActivityItem[] }) {
     <Card
       title="Recent lead activity"
       icon={<PhoneCall aria-hidden />}
-      action={
-        <a href="#" className={buttonClass({ variant: "secondary", size: "sm" })}>
-          See all
-        </a>
-      }
       className="min-h-[360px]"
     >
       {items.length === 0 ? (

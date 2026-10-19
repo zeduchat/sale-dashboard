@@ -38,8 +38,8 @@ export function TasksCard({ tasks: initial }: { tasks: TaskRow[] }) {
       title="Tasks · overdue, today, upcoming"
       icon={<SquareCheck aria-hidden />}
       action={
-        <a href="#" className={buttonClass({ variant: "secondary", size: "sm" })}>
-          See all
+        <a href="/tasks" className={buttonClass({ variant: "secondary", size: "sm" })}>
+          See all tasks
         </a>
       }
       className="min-h-[360px]"
